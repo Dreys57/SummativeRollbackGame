@@ -196,6 +196,16 @@ void ClientGameManager::Update(seconds dt)
                 {
                     sprite.color = playerColors[player.playerNumber];
                 }
+
+            	if(player.isPreparingToCharge && !player.isCharging)
+            	{
+                    sprite.color = Color4(Color::yellow, 1.0f);
+            	}
+                else if(player.isCharging && !player.isPreparingToCharge)
+                {
+                    sprite.color = Color4(Color::white, 1.0f);
+                }
+            	
                 spriteManager_.SetComponent(entity, sprite);
             }
 
