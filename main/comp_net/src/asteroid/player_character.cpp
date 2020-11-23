@@ -79,54 +79,58 @@ void PlayerCharacterManager::FixedUpdate(seconds dt)
         if(playerCharacter.shootingTime < playerShootingPeriod)
         {
             playerCharacter.shootingTime += dt.count();
+            SetComponent(playerEntity, playerCharacter);
             
         }
 
-    	if(playerCharacter.isCharging && playerCharacter.chargeDuration > 0.0f)
+    	if(playerCharacter.isCharging && playerCharacter.chargeDuration < chargeDurationPeriod)
     	{
-            playerCharacter.chargeDuration -= dt.count();
+            playerCharacter.chargeDuration += dt.count();
             SetComponent(playerEntity, playerCharacter);
     	}
+
+    	if(playerCharacter.isPreparingToCharge && playerCharacter.chargePreparation < chargePreparationPeriod)
+    	{
+            playerCharacter.chargePreparation += dt.count();
+            SetComponent(playerEntity, playerCharacter);
+    	}
+
+        if (playerCharacter.chargeDuration >= chargeDurationPeriod)
+        {
+            playerCharacter.chargeDuration = 0.0f;
+            playerCharacter.shootingTime = 0.0f;
+            playerCharacter.isCharging = false;
+
+            SetComponent(playerEntity, playerCharacter);
+        }
+
+        if (playerCharacter.chargePreparation >= chargePreparationPeriod)
+        {
+            playerCharacter.isCharging = true;
+            playerCharacter.isPreparingToCharge = false;
+            playerCharacter.chargePreparation = 0.0f;
+
+            playerBody.angularVelocity = degree_t(0);
+            playerBody.velocity = 8.0f * dir;
+
+            SetComponent(playerEntity, playerCharacter);
+			physicsManager_.get().SetBody(playerEntity, playerBody);
+        }
     	
-        //Shooting mechanism
+        //Start the charge by the brief preparation leading to it
         if (playerCharacter.shootingTime >= playerShootingPeriod)
         {
-            if((input & PlayerInput::SHOOT) || playerCharacter.isCharging)
-            {
-                /*const auto currentPlayerSpeed = playerBody.velocity.Magnitude();
-                const auto bulletVelocity = dir * 
-                    ((Vec2f::Dot(playerBody.velocity, dir) > 0.0f ? currentPlayerSpeed : 0.0f)
-                    + bulletSpeed);
-                const auto bulletPosition = playerBody.position + dir * 0.5f + playerBody.velocity * dt.count();
-                gameManager_.get().SpawnBullet(playerCharacter.playerNumber,
-                                               bulletPosition,
-                                               bulletVelocity);
-                playerCharacter.shootingTime = 0.0f;
-                SetComponent(playerEntity, playerCharacter);*/
-               
-                if(!playerCharacter.isCharging)
-                {
-                    playerCharacter.isCharging = true;
-
-                    playerBody.angularVelocity = degree_t(0);
-
-                    playerBody.velocity = 4.0f * dir;
+            if((input & PlayerInput::SHOOT) && !playerCharacter.isCharging && !playerCharacter.isPreparingToCharge)
+            {               
+                playerCharacter.isPreparingToCharge = true;
                 	
-                    SetComponent(playerEntity, playerCharacter);
-                    physicsManager_.get().SetBody(playerEntity, playerBody);
-                }
+                playerBody.velocity = -2.0f * dir;
+                playerBody.angularVelocity = degree_t(0);
 
-                if (playerCharacter.chargeDuration <= 0.0f)
-                {
-                    playerCharacter.chargeDuration = 1.0f;
-                    playerCharacter.shootingTime = 0.0f;
-                    playerCharacter.isCharging = false;
-
-                    SetComponent(playerEntity, playerCharacter);
-                }
-                
-            }
-        //}
+                SetComponent(playerEntity, playerCharacter);
+                physicsManager_.get().SetBody(playerEntity, playerBody);            	               
+            }               
+        }
     }
 }
 

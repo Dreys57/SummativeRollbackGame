@@ -38,7 +38,9 @@ struct PlayerCharacter
     short health = playerHealth;
     float invincibilityTime = 0.0f;
     bool isCharging = false;
-    float chargeDuration = 1.0f;
+    bool isPreparingToCharge = false;
+    float chargeDuration = 0.0f;
+    float chargePreparation = 0.0f;
 };
 class GameManager;
 class PlayerCharacterManager : public ComponentManager<PlayerCharacter, EntityMask(ComponentType::PLAYER_CHARACTER)>

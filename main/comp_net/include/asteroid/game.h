@@ -41,6 +41,8 @@ const float bulletScale = 0.2f;
 const float bulletPeriod = 3.0f;
 const float playerInvincibilityPeriod = 1.5f;
 const float invincibilityFlashPeriod = 0.5f;
+const float chargeDurationPeriod = 0.3f;
+const float chargePreparationPeriod = 0.1f;
 
 const std::array<Color4, std::max(maxPlayerNmb, 4u)> playerColors =
 {
