@@ -52,19 +52,23 @@ void PlayerCharacterManager::FixedUpdate(seconds dt)
         const bool up = input & PlayerInput::UP;
         const bool down = input & PlayerInput::DOWN;
 
-        const auto angularVelocity = ((left ? 1.0f : 0.0f) + (right ? -1.0f : 0.0f)) * playerAngularSpeed;
-
-        playerBody.angularVelocity = angularVelocity;
-
         auto dir = Vec2f::up;
-        dir = dir.Rotate(-(playerBody.rotation + playerBody.angularVelocity * dt.count()));
+           	
+        if(!playerCharacter.isCharging)
+		{
+            const auto angularVelocity = ((left ? 2.0f : 0.0f) + (right ? -2.0f : 0.0f)) * playerAngularSpeed;
 
-        const auto acceleration = ((down ? -1.0f : 0.0f) + (up ? 1.0f : 0.0f)) * dir;
+            playerBody.angularVelocity = angularVelocity;
+        	
+            dir = dir.Rotate(-(playerBody.rotation + playerBody.angularVelocity * dt.count()));
+        	
+            const auto velocity = ((down ? -2.0f : 0.0f) + (up ? 2.0f : 0.0f)) * dir;
 
+            playerBody.velocity = velocity;
 
-        playerBody.velocity += acceleration * dt.count();
-
-        physicsManager_.get().SetBody(playerEntity, playerBody);
+            physicsManager_.get().SetBody(playerEntity, playerBody);
+        }
+        
 
         if(playerCharacter.invincibilityTime > 0.0f)
         {
@@ -75,14 +79,21 @@ void PlayerCharacterManager::FixedUpdate(seconds dt)
         if(playerCharacter.shootingTime < playerShootingPeriod)
         {
             playerCharacter.shootingTime += dt.count();
-            SetComponent(playerEntity, playerCharacter);
+            
         }
+
+    	if(playerCharacter.isCharging && playerCharacter.chargeDuration > 0.0f)
+    	{
+            playerCharacter.chargeDuration -= dt.count();
+            SetComponent(playerEntity, playerCharacter);
+    	}
+    	
         //Shooting mechanism
         if (playerCharacter.shootingTime >= playerShootingPeriod)
         {
-            if(input & PlayerInput::SHOOT)
+            if((input & PlayerInput::SHOOT) || playerCharacter.isCharging)
             {
-                const auto currentPlayerSpeed = playerBody.velocity.Magnitude();
+                /*const auto currentPlayerSpeed = playerBody.velocity.Magnitude();
                 const auto bulletVelocity = dir * 
                     ((Vec2f::Dot(playerBody.velocity, dir) > 0.0f ? currentPlayerSpeed : 0.0f)
                     + bulletSpeed);
@@ -91,9 +102,31 @@ void PlayerCharacterManager::FixedUpdate(seconds dt)
                                                bulletPosition,
                                                bulletVelocity);
                 playerCharacter.shootingTime = 0.0f;
-                SetComponent(playerEntity, playerCharacter);
+                SetComponent(playerEntity, playerCharacter);*/
+               
+                if(!playerCharacter.isCharging)
+                {
+                    playerCharacter.isCharging = true;
+
+                    playerBody.angularVelocity = degree_t(0);
+
+                    playerBody.velocity = 4.0f * dir;
+                	
+                    SetComponent(playerEntity, playerCharacter);
+                    physicsManager_.get().SetBody(playerEntity, playerBody);
+                }
+
+                if (playerCharacter.chargeDuration <= 0.0f)
+                {
+                    playerCharacter.chargeDuration = 1.0f;
+                    playerCharacter.shootingTime = 0.0f;
+                    playerCharacter.isCharging = false;
+
+                    SetComponent(playerEntity, playerCharacter);
+                }
+                
             }
-        }
+        //}
     }
 }
 
