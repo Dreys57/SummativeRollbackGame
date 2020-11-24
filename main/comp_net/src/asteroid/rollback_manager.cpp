@@ -315,36 +315,47 @@ net::PlayerInput RollbackManager::GetInputAtFrame(net::PlayerNumber playerNumber
 
 void RollbackManager::OnCollision(Entity entity1, Entity entity2)
 {
-    std::function<void(const PlayerCharacter&, Entity, const Bullet&, Entity)> ManageCollision =
-        [this](const auto& player, auto playerEntity, const auto& bullet, auto bulletEntity)
-    {
-        if (player.playerNumber != bullet.playerNumber)
-        {
-            gameManager_.DestroyBullet(bulletEntity);
-            //lower health point
-            auto playerCharacter = currentPlayerManager_.GetComponent(playerEntity);
-            if (playerCharacter.invincibilityTime <= 0.0f)
-            {
-                playerCharacter.health--;
-                playerCharacter.invincibilityTime = playerInvincibilityPeriod;
-            }
-            currentPlayerManager_.SetComponent(playerEntity, playerCharacter);
-        }
-    };
     if (entityManager_.HasComponent(entity1, EntityMask(ComponentType::PLAYER_CHARACTER)) &&
-        entityManager_.HasComponent(entity2, EntityMask(ComponentType::BULLET)))
+        entityManager_.HasComponent(entity2, EntityMask(ComponentType::PLAYER_CHARACTER)))
     {
-        const auto& player = currentPlayerManager_.GetComponent(entity1);
-        const auto& bullet = currentBulletManager_.GetComponent(entity2);
-        ManageCollision(player, entity1, bullet, entity2);
+        auto player1 = currentPlayerManager_.GetComponent(entity1);
+        auto player2 = currentPlayerManager_.GetComponent(entity2);
+    	
+        Body player1Body = currentPhysicsManager_.GetBody(entity1);
+        Body player2Body = currentPhysicsManager_.GetBody(entity2);
 
-    }
-    if (entityManager_.HasComponent(entity2, EntityMask(ComponentType::PLAYER_CHARACTER)) &&
-        entityManager_.HasComponent(entity1, EntityMask(ComponentType::BULLET)))
-    {
-        const auto& player = currentPlayerManager_.GetComponent(entity2);
-        const auto& bullet = currentBulletManager_.GetComponent(entity1);
-        ManageCollision(player, entity2, bullet, entity1);
+        if((!player1.isCharging && !player2.isCharging) || (player1.isCharging && player2.isCharging))
+        {
+            player2.isPushed = true;
+            player1.isPushed = true;
+
+            Vec2f tmp = player1Body.velocity;        	
+            player1Body.velocity = player2Body.velocity;       	
+            player2Body.velocity = tmp;
+        }
+    	
+        if (player1.isCharging && !player2.isCharging)
+        {
+			player2.isPushed = true;
+        	
+            player2Body.velocity = player1Body.velocity;
+
+            player1Body.velocity = Vec2f::zero;
+        }
+        else if(player2.isCharging && !player1.isCharging)
+        {
+            player1.isPushed = true;
+        	
+            player1Body.velocity = player2Body.velocity;
+
+            player2Body.velocity = Vec2f::zero;
+        }
+
+        currentPlayerManager_.SetComponent(entity1, player1);
+        currentPlayerManager_.SetComponent(entity2, player2);
+
+        currentPhysicsManager_.SetBody(entity1, player1Body);
+        currentPhysicsManager_.SetBody(entity2, player2Body);
     }
 }
 

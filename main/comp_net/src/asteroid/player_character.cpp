@@ -52,10 +52,12 @@ void PlayerCharacterManager::FixedUpdate(seconds dt)
         const bool up = input & PlayerInput::UP;
         const bool down = input & PlayerInput::DOWN;
 
-        auto dir = Vec2f::up;
+        Vec2f dir;
            	
-        if(!playerCharacter.isCharging)
+        if(!playerCharacter.isCharging && !playerCharacter.isPushed)
 		{
+            dir = Vec2f::up;
+        	
             const auto angularVelocity = ((left ? 2.0f : 0.0f) + (right ? -2.0f : 0.0f)) * playerAngularSpeed;
 
             playerBody.angularVelocity = angularVelocity;
@@ -70,11 +72,19 @@ void PlayerCharacterManager::FixedUpdate(seconds dt)
         }
         
 
-        if(playerCharacter.invincibilityTime > 0.0f)
+        if(playerCharacter.isPushed && playerCharacter.pushDuration < chargeDurationPeriod)
         {
-            playerCharacter.invincibilityTime -= dt.count();
+            playerCharacter.pushDuration += dt.count();
             SetComponent(playerEntity, playerCharacter);
         }
+
+        if(playerCharacter.pushDuration >= chargeDurationPeriod)
+        {
+            playerCharacter.isPushed = false;
+            playerCharacter.pushDuration = 0.0f;
+            SetComponent(playerEntity, playerCharacter);
+        }
+    	
         //Check if cannot shoot, and increase shootingTime
         if(playerCharacter.shootingTime < playerShootingPeriod)
         {
@@ -94,6 +104,8 @@ void PlayerCharacterManager::FixedUpdate(seconds dt)
             playerCharacter.chargePreparation += dt.count();
             SetComponent(playerEntity, playerCharacter);
     	}
+
+    	
 
         if (playerCharacter.chargeDuration >= chargeDurationPeriod)
         {
