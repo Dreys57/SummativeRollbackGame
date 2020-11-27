@@ -114,6 +114,7 @@ protected:
 
     TextureId shipTextureId_ = INVALID_TEXTURE_ID;
     TextureId bulletTextureId_ = INVALID_TEXTURE_ID;
+	TextureId ringTextureId_ = INVALID_TEXTURE_ID;
     FontId fontId_ = INVALID_FONT_ID;
     std::mutex renderMutex_;
 };

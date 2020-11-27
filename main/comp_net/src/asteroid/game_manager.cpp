@@ -158,8 +158,20 @@ void ClientGameManager::Init()
 
     const auto& config = BasicEngine::GetInstance()->config;
     fontId_ = fontManager_.LoadFont(config.dataRootPath + "font/8-bit-hud.ttf", 36);
-
+	
     GameManager::Init();
+
+    Entity ringEntity = entityManager_.CreateEntity();
+    transformManager_.AddComponent(ringEntity);
+    transformManager_.SetPosition(ringEntity, Vec2f::zero);
+    transformManager_.SetScale(ringEntity, Vec2f(10, 10));
+	
+    ringTextureId_ = textureManager_.LoadTexture(config.dataRootPath + "sprites/asteroid/Ring.png");
+    spriteManager_.AddComponent(ringEntity);
+    spriteManager_.SetTexture(ringEntity, ringTextureId_);
+    auto ringSprite = spriteManager_.GetComponent(ringEntity);
+    ringSprite.color = Color4(Color::white, 1.0f);
+    spriteManager_.SetComponent(ringEntity, ringSprite);
 }
 
 void ClientGameManager::Update(seconds dt)
@@ -207,10 +219,7 @@ void ClientGameManager::Update(seconds dt)
                 }
             	
                 spriteManager_.SetComponent(entity, sprite);
-            }
-
-            if (entityManager_.HasComponent(entity, EntityMask(neko::ComponentType::TRANSFORM2D)))
-            {
+            	
                 transformManager_.SetPosition(entity, rollbackManager_.GetTransformManager().GetPosition(entity));
                 transformManager_.SetScale(entity, rollbackManager_.GetTransformManager().GetScale(entity));
                 transformManager_.SetRotation(entity, rollbackManager_.GetTransformManager().GetRotation(entity));
@@ -311,7 +320,7 @@ void ClientGameManager::SpawnPlayer(net::PlayerNumber playerNumber, Vec2f positi
     const auto& config = BasicEngine::GetInstance()->config;
     if (shipTextureId_ == INVALID_TEXTURE_ID)
     {
-        shipTextureId_ = textureManager_.LoadTexture(config.dataRootPath + "sprites/asteroid/ship.png");
+        shipTextureId_ = textureManager_.LoadTexture(config.dataRootPath + "sprites/asteroid/sumo_player.png");
     }
     spriteManager_.AddComponent(entity);
     spriteManager_.SetTexture(entity, shipTextureId_);
