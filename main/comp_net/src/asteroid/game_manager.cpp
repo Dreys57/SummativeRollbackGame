@@ -129,8 +129,7 @@ net::PlayerNumber GameManager::CheckWinner() const
     	{
             alivePlayer++;
             winner = player.playerNumber;
-    	}
-    	
+    	}  	
     }
 
     return alivePlayer == 1 ? winner : net::INVALID_PLAYER;
@@ -166,6 +165,7 @@ void ClientGameManager::Init()
 	
     GameManager::Init();
 
+	//Spawning the ring
     Entity ringEntity = entityManager_.CreateEntity();
     transformManager_.AddComponent(ringEntity);
     transformManager_.SetPosition(ringEntity, Vec2f::zero);
@@ -197,7 +197,7 @@ void ClientGameManager::Update(seconds dt)
             {
                 const auto& player = rollbackManager_.GetPlayerCharacterManager().GetComponent(entity);
                 auto sprite = spriteManager_.GetComponent(entity);
-
+                //Change sprite color when the player is charging
             	if(player.isPreparingToCharge && !player.isCharging)
             	{
                     sprite.color = Color4(Color::yellow, 1.0f);
@@ -262,17 +262,7 @@ void ClientGameManager::Update(seconds dt)
             }
         }
     }
-    else
-    {
-        std::string health;
-        const auto& playerManager = rollbackManager_.GetPlayerCharacterManager();
-        for(net::PlayerNumber playerNumber = 0; playerNumber < maxPlayerNmb; playerNumber++)
-        {
-            const auto playerEntity = GetEntityFromPlayerNumber(playerNumber);
-            health += fmt::format("P{} health: {} ",playerNumber+1,playerManager.GetComponent(playerEntity).health);
-        }
-        fontManager_.RenderText(fontId_, health, Vec2f(0.0f, -40.0f), TextAnchor::TOP_LEFT, 0.75f, Color4(Color::white, 1.0f));
-    }
+
     textureManager_.Update(dt);
     spriteManager_.Update(dt);
     transformManager_.Update();
