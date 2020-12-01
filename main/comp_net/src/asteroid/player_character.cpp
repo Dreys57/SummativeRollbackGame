@@ -53,6 +53,12 @@ void PlayerCharacterManager::FixedUpdate(seconds dt)
         const bool down = input & PlayerInput::DOWN;
 
         Vec2f dir;
+
+        if(playerBody.position.Magnitude() >= 8.0f)
+        {
+            playerCharacter.alivePlayer = false;
+            SetComponent(playerEntity, playerCharacter);
+        }
            	
         if(!playerCharacter.isCharging && !playerCharacter.isPushed)
 		{
@@ -85,10 +91,10 @@ void PlayerCharacterManager::FixedUpdate(seconds dt)
             SetComponent(playerEntity, playerCharacter);
         }
     	
-        //Check if cannot shoot, and increase shootingTime
-        if(playerCharacter.shootingTime < playerShootingPeriod)
+        //Check if cannot charge, and increase charge cooldown
+        if(playerCharacter.chargeCooldown < chargeCooldownPeriod)
         {
-            playerCharacter.shootingTime += dt.count();
+            playerCharacter.chargeCooldown += dt.count();
             SetComponent(playerEntity, playerCharacter);
             
         }
@@ -110,7 +116,7 @@ void PlayerCharacterManager::FixedUpdate(seconds dt)
         if (playerCharacter.chargeDuration >= chargeDurationPeriod)
         {
             playerCharacter.chargeDuration = 0.0f;
-            playerCharacter.shootingTime = 0.0f;
+            playerCharacter.chargeCooldown = 0.0f;
             playerCharacter.isCharging = false;
 
             SetComponent(playerEntity, playerCharacter);
@@ -130,7 +136,7 @@ void PlayerCharacterManager::FixedUpdate(seconds dt)
         }
     	
         //Start the charge by the brief preparation leading to it
-        if (playerCharacter.shootingTime >= playerShootingPeriod)
+        if (playerCharacter.chargeCooldown >= chargeCooldownPeriod)
         {
             if((input & PlayerInput::SHOOT) && !playerCharacter.isCharging && !playerCharacter.isPreparingToCharge)
             {               

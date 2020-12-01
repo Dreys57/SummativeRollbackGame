@@ -32,7 +32,7 @@ namespace neko::asteroid
 
 struct PlayerCharacter
 {
-    float shootingTime = 0.0f;
+    float chargeCooldown = 0.0f;
     net::PlayerInput input = 0;
     net::PlayerNumber playerNumber = net::INVALID_PLAYER;
     short health = playerHealth;
@@ -43,6 +43,7 @@ struct PlayerCharacter
     float chargeDuration = 0.0f;
     float chargePreparation = 0.0f;
     float pushDuration = 0.0f;
+    bool alivePlayer = true;
 };
 class GameManager;
 class PlayerCharacterManager : public ComponentManager<PlayerCharacter, EntityMask(ComponentType::PLAYER_CHARACTER)>

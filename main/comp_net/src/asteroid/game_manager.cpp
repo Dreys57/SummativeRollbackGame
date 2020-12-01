@@ -122,15 +122,20 @@ net::PlayerNumber GameManager::CheckWinner() const
     {
         if(!entityManager_.HasComponent(entity, EntityMask(ComponentType::PLAYER_CHARACTER)))
             continue;
+    	
         const auto& player = playerManager.GetComponent(entity);
-        if(player.health > 0)
-        {
+
+    	if(player.alivePlayer)
+    	{
             alivePlayer++;
             winner = player.playerNumber;
-        }
+    	}
+    	
     }
 
     return alivePlayer == 1 ? winner : net::INVALID_PLAYER;
+
+	
 }
 
 void GameManager::WinGame(net::PlayerNumber winner)
@@ -164,7 +169,7 @@ void ClientGameManager::Init()
     Entity ringEntity = entityManager_.CreateEntity();
     transformManager_.AddComponent(ringEntity);
     transformManager_.SetPosition(ringEntity, Vec2f::zero);
-    transformManager_.SetScale(ringEntity, Vec2f(10, 10));
+    transformManager_.SetScale(ringEntity, Vec2f(20, 20));
 	
     ringTextureId_ = textureManager_.LoadTexture(config.dataRootPath + "sprites/asteroid/Ring.png");
     spriteManager_.AddComponent(ringEntity);
@@ -192,22 +197,6 @@ void ClientGameManager::Update(seconds dt)
             {
                 const auto& player = rollbackManager_.GetPlayerCharacterManager().GetComponent(entity);
                 auto sprite = spriteManager_.GetComponent(entity);
-                if (player.invincibilityTime > 0.0f)
-                {
-                    auto leftV = std::fmod(player.invincibilityTime, invincibilityFlashPeriod);
-                    auto rightV = invincibilityFlashPeriod / 2.0f;
-                    //logDebug(fmt::format("Comparing {} and {} with time: {}", leftV, rightV, player.invincibilityTime));
-                }
-                if (player.invincibilityTime > 0.0f &&
-                    std::fmod(player.invincibilityTime, invincibilityFlashPeriod)
-                    > invincibilityFlashPeriod / 2.0f)
-                {
-                    sprite.color = Color4(Color::black, 1.0f);
-                }
-                else
-                {
-                    sprite.color = playerColors[player.playerNumber];
-                }
 
             	if(player.isPreparingToCharge && !player.isCharging)
             	{
@@ -216,6 +205,10 @@ void ClientGameManager::Update(seconds dt)
                 else if(player.isCharging && !player.isPreparingToCharge)
                 {
                     sprite.color = Color4(Color::white, 1.0f);
+                }
+                else
+                {
+                    sprite.color = playerColors[player.playerNumber];
                 }
             	
                 spriteManager_.SetComponent(entity, sprite);
